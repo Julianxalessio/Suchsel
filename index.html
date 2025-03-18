@@ -11,6 +11,9 @@
         .selected { background-color: yellow; }
         .correct { background-color: lightgreen; }
         .incorrect { background-color: red; }
+        button{
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -18,6 +21,8 @@
     <div class="grid" id="grid"></div>
     <button onclick="checkSolution()">Lösung prüfen</button>
     <button onclick="revealSolution()">Lösung anzeigen</button>
+    <button onclick="Reset()">Reset</button>
+
     <p id="feedback"></p>
     
     <script>
@@ -52,26 +57,32 @@
         });
         
         function checkSolution() {
-            let selectedIndexes = cells.map((cell, index) => cell.classList.contains("selected") ? index : -1).filter(index => index !== -1);
-            let found = false;
-            
-            words.forEach(wordObj => {
-                let isMatch = wordObj.positions.every(([row, col]) => {
-                    let index = row * 15 + col;
-                    return selectedIndexes.includes(index);
-                });
-                
-                if (isMatch) {
-                    found = true;
-                    wordObj.positions.forEach(([row, col]) => {
-                        let index = row * 15 + col;
-                        cells[index].classList.add("correct");
-                    });
-                }
-            });
-            
-            document.getElementById("feedback").textContent = found ? "Richtig! Du hast ein Wort gefunden." : "Leider falsch, versuche es erneut.";
+    let selectedIndexes = cells.map((cell, index) => cell.classList.contains("selected") ? index : -1).filter(index => index !== -1);
+    let found = false;
+    let correctIndexes = new Set();
+
+    // Speichere alle korrekten Positionen
+    words.forEach(wordObj => {
+        wordObj.positions.forEach(([row, col]) => {
+            correctIndexes.add(row * 15 + col);
+        });
+    });
+
+    selectedIndexes.forEach(index => {
+        if (correctIndexes.has(index)) {
+            cells[index].classList.add("correct");
+        } else {
+            cells[index].classList.add("incorrect");
         }
+    });
+
+    found = selectedIndexes.some(index => correctIndexes.has(index));
+
+    document.getElementById("feedback").textContent = found 
+        ? "Richtig! Du hast ein Wort gefunden." 
+        : "Leider falsch, versuche es erneut.";
+}
+
         
         function revealSolution() {
             words.forEach(wordObj => {
@@ -81,6 +92,9 @@
                 });
             });
             document.getElementById("feedback").textContent = "Hier sind die Lösungen!";
+        }
+        function Reset(){
+            window.location.replace("index.html");
         }
     </script>
 </body>
