@@ -1,62 +1,87 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stoppuhr</title>
-    <link rel="icon" alt="Logo" href="Stoppuhr.png">
-    <link rel="stylesheet" href="../CSS Files/CloseButton.css">
-    <link rel="stylesheet" href="../CSS Files/DarkModeSwitch.css">
+    <title>Vois sur ton chemin</title>
     <style>
-        body {
-            font-family: 'Arial', cursive, sans-serif;
-            transition: background-color 0.5s;
-            position: relative;
-            margin: 0;
-            padding: 0;
-        }
-
-        input {
-            margin-left: 10px;
-            padding: 5px;
-            font-size: 14px;
-            background-color: transparent;
-            color: #000000;
-            border: 1px solid #000000;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .grid { display: grid; grid-template-columns: repeat(15, 50px); gap: 2px; justify-content: center; }
+        .cell { width: 50px; height: 50px; font-size: 24px; border: 1px solid #000; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .selected { background-color: yellow; }
+        .correct { background-color: lightgreen; }
+        .incorrect { background-color: red; }
     </style>
 </head>
-
 <body>
-    <h1>Noten</h1>
-
-    <input type="text" id="MP" placeholder="Max Points">
-    <input type="text" id="AP" placeholder="Achieved Points">
-    <button id="Enter" onclick="Submit()">OK</button>
-
-    <script defer>
-        function Submit() {
-            let MaxP = document.getElementById("MP").value;
-            let AchP = document.getElementById("AP").value;
-            let Break = AchP * 5;
-            let Ergebnis = Break / MaxP;
-            Ergebnis += 1;
-
-            let gerundet = new Intl.NumberFormat('de-DE', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(Ergebnis); // "3,14" (String im deutschen Format)
-
-            document.getElementById("Note").value = gerundet;
+    <h1>Vois sur ton chemin</h1>
+    <div class="grid" id="grid"></div>
+    <button onclick="checkSolution()">Lösung prüfen</button>
+    <button onclick="revealSolution()">Lösung anzeigen</button>
+    <p id="feedback"></p>
+    
+    <script>
+        const letters = [
+            "VRMIXKQVFAATOIQ", "FBUQMYXINSISRSA", "UCRNVIPWUYMBPSV", "ADQUAEPLLERTSPQ",
+            "ERGCNXUESSMISIR", "GSRWAOBCWPFJEFL", "BSSLYV-CAOCLWHI", "LAPEPWDCZIRJWLK",
+            "DJLES-CHORISTES", "TEPXVCOMMUNAUTE", "FDYIWENASLLYXGT", "UVMCRGQANLYAPYI",
+            "TKWOSIGJCVAMITÉ", "UAXTUJNQNBRVESU"
+        ];
+        
+        const words = [
+            { word: "BRUNO-COULAIS", positions: [[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8],[9,9],[10,10],[11,11],[12,12],[13,13]] },
+            { word: "LES-CHORISTS", positions: [[8,2],[8,3],[8,4],[8,5],[8,6],[8,7],[8,8],[8,9],[8,10],[8,11],[8,12],[8,13],[8,14]] },
+            { word: "COMMUNAUTÉ", positions: [[9,5],[9,6],[9,7],[9,8],[9,9],[9,10],[9,11],[9,12],[9,13],[9,14]] },
+            { word: "AMITÉ", positions: [[12,10],[12,11],[12,12],[12,13],[12,14]] },
+            { word: "ESPOIR", positions: [[3,9],[4,9],[5,9],[6,9],[7,9]] },
+        ];
+        
+        const grid = document.getElementById("grid");
+        let cells = [];
+        let gridMatrix = letters.map(row => row.split(''));
+        
+        letters.forEach(row => {
+            row.split('').forEach(letter => {
+                let cell = document.createElement("div");
+                cell.classList.add("cell");
+                cell.textContent = letter;
+                cell.addEventListener("click", () => cell.classList.toggle("selected"));
+                grid.appendChild(cell);
+                cells.push(cell);
+            });
+        });
+        
+        function checkSolution() {
+            let selectedIndexes = cells.map((cell, index) => cell.classList.contains("selected") ? index : -1).filter(index => index !== -1);
+            let found = false;
+            
+            words.forEach(wordObj => {
+                let isMatch = wordObj.positions.every(([row, col]) => {
+                    let index = row * 15 + col;
+                    return selectedIndexes.includes(index);
+                });
+                
+                if (isMatch) {
+                    found = true;
+                    wordObj.positions.forEach(([row, col]) => {
+                        let index = row * 15 + col;
+                        cells[index].classList.add("correct");
+                    });
+                }
+            });
+            
+            document.getElementById("feedback").textContent = found ? "Richtig! Du hast ein Wort gefunden." : "Leider falsch, versuche es erneut.";
+        }
+        
+        function revealSolution() {
+            words.forEach(wordObj => {
+                wordObj.positions.forEach(([row, col]) => {
+                    let index = row * 15 + col;
+                    cells[index].classList.add("correct");
+                });
+            });
+            document.getElementById("feedback").textContent = "Hier sind die Lösungen!";
         }
     </script>
-    <script src="../JS Files/CloseButton.js"></script>
-    <script src="../JS Files/DarkModeSwitch.js"></script>
-
 </body>
-
 </html>
